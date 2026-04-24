@@ -7,6 +7,8 @@ import { doc, getDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
+const ADMIN_EMAIL = "preranaacharyya11b@gmail.com"; 
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null); 
@@ -21,15 +23,28 @@ export function AuthProvider({ children }) {
           const userDocRef = doc(db, "users", u.uid);
           const userDoc = await getDoc(userDocRef);
 
+          let userRole = "user";
+
           if (userDoc.exists()) {
-            setRole(userDoc.data().role || "user");
+            userRole = userDoc.data().role || "user";
+          }
+
+          if (u.email === ADMIN_EMAIL) {
+            userRole = "admin";
+          }
+
+          setRole(userRole);
+
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+
+          if (u.email === ADMIN_EMAIL) {
+            setRole("admin");
           } else {
             setRole("user");
           }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-          setRole("user");
         }
+
       } else {
         setUser(null);
         setRole(null);
